@@ -44,7 +44,8 @@ let rgb_of_gray (value : pixel) : G.color =
    are in the range [0..1], with size given by `col_size` and
    `row_size`, and content as provided in `contents`. 
  *)
-let create (col_size : int) (row_size : int)
+let create (col_size : int)
+           (row_size : int)
            (contents : float list list)
          : image =
   {size = col_size, row_size;
@@ -69,13 +70,13 @@ let depict ({size = col_size, row_size; content} : image) : unit =
                (fun col_index pixel ->
                 (* draw the pixel at the coordinates; note Graphics
                    module coordinates starts at lower left, so need to
-		   invert the row index *)
+                   invert the row index *)
                 G.set_color (rgb_of_gray pixel);
                 G.plot col_index (row_size - row_index - 1)));
     
     (* wait for a couple of seconds *)
     Unix.sleep 2
-	       
+
   with
     (* make sure to close window if things go wrong *)
     exn -> (G.close_graph (); raise exn) ;;
@@ -97,17 +98,15 @@ let filter (f : pixel -> pixel)
 let invert : image -> image =
   filter (fun p -> (1. -. p)) ;;
 
-(* threshold img -- Digitally halftones an image into a binary image
-   by thresholding each pixel at the given `threshold`, interpreted as
-   a fraction (between 0 and 1) of the value space.  
- *)
+(* threshold img -- Digitally halftones `img` into a binary image by
+   thresholding each pixel at the given `threshold`, interpreted as a
+   fraction (between 0 and 1) of the value space.  *)
 let threshold (threshold : float) : image -> image =
   filter
     (fun p -> if threshold < p then 1. else 0.) ;;
          
-(* dither img -- Digitally halftones an image into a binary image by
-   making a pixel black randomly in proportion to its gray level.
- *)
+(* dither img -- Digitally halftones `img` into a binary image by
+   making a pixel black randomly in proportion to its gray level.  *)
 let dither : image -> image =
   filter
     (fun p -> if Random.float 1. < p then 1. else 0.) ;;
@@ -115,9 +114,7 @@ let dither : image -> image =
 (* error_diffuse img -- Digitally halftones `img` into a binary image
    by one-dimensional error diffusion. Relies on the fact that
    `filter` visits the pixels in a consistent row-by-row left-to-right
-   order. See
-   https://en.wikipedia.org/wiki/Error_diffusion#One-dimensional_error_diffusion
- *)
+   order. See <https://url.cs51.io/1d-error-diffusion>. *)
 let error_diffuse : image -> image =
   filter
     (let error = ref 0. in
